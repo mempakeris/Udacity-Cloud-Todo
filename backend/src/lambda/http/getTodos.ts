@@ -7,10 +7,12 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
 
   // query variable
   const tableName = process.env.TODOS_TABLE;
+  const indexName = process.env.INDEX_NAME;
 
   // get items from db
   const items = await dynamoDB.scan({
-    TableName: tableName
+    TableName: tableName,
+    IndexName: indexName
   }).promise();
 
   return {
