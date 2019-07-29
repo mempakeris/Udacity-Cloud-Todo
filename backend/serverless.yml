@@ -13,10 +13,14 @@ provider:
   region: ${opt:region, 'us-east-1'}
 
   environment:
-    TODOS_TABLE: 'Todos'
-    INDEX_NAME: 'TodoName'
+    TODOS_TABLE: Todos
+    INDEX_NAME: TodoName
+    S3_BUCKET: AttachmentsBucket
+    SIGNED_URL_EXPIRATION: 300
+
 
   iamRoleStatements:
+    # dynamoDB
     - Effect: Allow
       Action:
         - dynamodb:PutItem
@@ -24,6 +28,13 @@ provider:
         - dynamodb:Scan
         - dynamodb:UpdateItem
       Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+
+    # S3 Bucket
+    - Effect: Allow
+        Action:
+          - s3:PutObject
+          - s3:GetObject
+        Resource: arn:aws:s3:::${self:provider.environment.S3_BUCKET}
 
 functions:
 
@@ -105,3 +116,30 @@ resources:
                 KeyType: RANGE
             Projection:
               ProjectionType: ALL
+
+    # S3 Bucket
+    AttachmentBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:provider.environment.S3_BUCKET}
+        CorsConfiguration:
+          CorsRules:
+            - GET
+            - POST
+            - DELETE
+          MaxAge: 3000
+
+    # S3 Bucket Policy
+    BucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        PolicyDocument:
+          Id: Policy
+          Version: '2012-10-17'
+          Statement:
+            - Sid: PublicReadForGetBucketObjects
+              Effect: Allow
+              Principal: '*' # Anyone
+              Action: 's3:GetObject'
+              Resource: 'arn:aws:s3:::${self:provider.environment.S3_BUCKET}/*'
+        Bucket: !Ref AttachmentBucket
