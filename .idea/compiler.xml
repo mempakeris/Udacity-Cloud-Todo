@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="TypeScriptCompiler">
-    <option name="nodeInterpreterTextField" value="wsl://UBUNTU@/home/caliskimmer/.nvm/versions/node/v10.15.3/bin/node" />
-    <option name="recompileOnChanges" value="true" />
-  </component>
-</project>
