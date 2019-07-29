@@ -22,6 +22,7 @@ provider:
         - dynamodb:PutItem
         - dynamodb:DeleteItem
         - dynamodb:Scan
+        - dynamodb:UpdateItem
       Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
 
 functions:
