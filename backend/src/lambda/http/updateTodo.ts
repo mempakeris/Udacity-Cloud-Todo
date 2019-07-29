@@ -6,7 +6,7 @@ import * as AWS from 'aws-sdk';
 import { UpdateTodoRequest } from '../../requests/UpdateTodoRequest';
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  const dynamoDB = new AWS.DynamoDB.documentClient();
+  const dynamoDB = new AWS.DynamoDB.DocumentClient();
 
   // relevant query attributes
   const tableName = process.env.TODOS_TABLE;
