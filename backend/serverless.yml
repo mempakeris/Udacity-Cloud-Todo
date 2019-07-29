@@ -16,6 +16,12 @@ provider:
     TODOS_TABLE: 'Todos'
     INDEX_NAME: 'TodoName'
 
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+      Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+
 functions:
 
   Auth:
