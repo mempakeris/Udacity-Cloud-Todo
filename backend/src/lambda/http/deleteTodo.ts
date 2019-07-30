@@ -7,13 +7,11 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
 
   // relevant query attributes
   const tableName = process.env.TODOS_TABLE;
-  const indexName = process.env.INDEX_NAME;
   const todoId = event.pathParameters.todoId;
 
   // remove item from db
   await dynamoDB.delete({
     TableName: tableName,
-    IndexName: indexName,
     Key: {
       todoId
     }

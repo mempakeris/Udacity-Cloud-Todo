@@ -8,7 +8,8 @@ import { JwtPayload } from '../../auth/JwtPayload';
 
 const logger = createLogger('auth');
 
-const jwksUrl = 'https://test-endpoint.auth0.com/.well-known/jwks.json';
+// hardcoded based on boilerplate specifications
+const jwksUrl = 'https://dev-xa9u920z.auth0.com/.well-known/jwks.json';
 
 export const handler = async (event: CustomAuthorizerEvent): Promise<CustomAuthorizerResult> => {
   logger.info('Authorizing a user', event.authorizationToken);
@@ -55,12 +56,13 @@ async function verifyToken(authHeader: string): Promise<JwtPayload> {
   let cert;
   try {
     const response = await Axios.get(jwksUrl);
-    cert = response['keys'][0]['x5c'][0]
+    const pemData = response['data']['keys'][0]['x5c'][0];
+    cert = `-----BEGIN CERTIFICATE-----\n${pemData}\n-----END CERTIFICATE-----`;
   } catch (err) {
     console.log(err);
   }
 
-  return verify(token, cert) as JwtToken;
+  return verify(token, cert, { algorithms: ['RS256']}) as JwtPayload;
 }
 
 function getToken(authHeader: string): string {

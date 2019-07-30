@@ -4,6 +4,7 @@ service:
 plugins:
   - serverless-webpack
   - serverless-iam-roles-per-function
+  - serverless-offline
 
 provider:
   name: aws
@@ -13,11 +14,10 @@ provider:
   region: ${opt:region, 'us-east-1'}
 
   environment:
-    TODOS_TABLE: Todos
-    INDEX_NAME: TodoName
-    S3_BUCKET: AttachmentsBucket
+    TODOS_TABLE: serverless-todos-table${self:provider.stage}
+    INDEX_NAME: UserIdIndex
+    S3_BUCKET: serverless-attachments-${self:provider.stage}
     SIGNED_URL_EXPIRATION: 300
-
 
   iamRoleStatements:
     # dynamoDB
@@ -41,7 +41,6 @@ functions:
   Auth:
     handler: src/lambda/auth/auth0Authorizer.handler
 
-  # TODO: Configure this function
   GetTodos:
     handler: src/lambda/http/getTodos.handler
     events:
@@ -94,17 +93,11 @@ resources:
       Type: AWS::DynamoDB::Table
       Properties:
         AttributeDefinitions:
-          - AttributeName: todoId
+          - AttributeName: userId
             AttributeType: S
           - AttributeName: createdAt
             AttributeType: S
-          - AttributeName: name
-            AttributeType: S
-          - AttributeName: dueDate
-            AttributeType: S
-          - AttributeName: done
-            AttributeType: BOOL
-          - AttributeName: attachmentUrl
+          - AttributeName: todoId
             AttributeType: S
         KeySchema:
           - AttributeName: todoId
@@ -113,12 +106,12 @@ resources:
             KeyType: RANGE
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:provider.environment.TODOS_TABLE}
-        LocalSeconaryIndexes:
+        LocalSecondaryIndexes:
           - IndexName: ${self:provider.environment.INDEX_NAME}
             KeySchema:
               - AttributeName: todoId
                 KeyType: HASH
-              - AttributeName: name
+              - AttributeName: userId
                 KeyType: RANGE
             Projection:
               ProjectionType: ALL
@@ -139,7 +132,7 @@ resources:
                 - GET
                 - POST
                 - DELETE
-          MaxAge: 3000
+              MaxAge: 3000
 
     # S3 Bucket Policy
     BucketPolicy:
