@@ -10,14 +10,12 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
 
   // relevant query attributes
   const tableName = process.env.TODOS_TABLE;
-  const indexName = process.env.INDEX_NAME;
   const todoId = event.pathParameters.todoId;
   const updatedTodo: UpdateTodoRequest = JSON.parse(event.body);
 
   // updated item in table
   await dynamoDB.update({
     TableName: tableName,
-    IndexName: indexName,
     Key: {
       todoId
     },
@@ -25,7 +23,7 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
     ExpressionAttributeValues: {
       ":n": updatedTodo.name,
       ":due": updatedTodo.dueDate,
-      ":d": udpatedTodo.done
+      ":d": updatedTodo.done
     }
   }).promise();
 

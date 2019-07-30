@@ -3,7 +3,9 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } f
 import * as AWS from 'aws-sdk';
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  const s3 = AWS.S3();
+  const s3 = new AWS.S3({
+    signatureVersion: 'v4'
+  });
 
   // arguments to generate signed URL
   const bucket = process.env.S3_BUCKET;

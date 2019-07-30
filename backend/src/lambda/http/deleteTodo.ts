@@ -13,7 +13,7 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   // remove item from db
   await dynamoDB.delete({
     TableName: tableName,
-    indexName: indexName,
+    IndexName: indexName,
     Key: {
       todoId
     }

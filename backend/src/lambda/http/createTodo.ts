@@ -7,7 +7,7 @@ import * as uuid from 'uuid';
 import { CreateTodoRequest } from '../../requests/CreateTodoRequest';
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  const dynamoDB = new AWS.dynamoDB.DocumentClient();
+  const dynamoDB = new AWS.DynamoDB.DocumentClient();
 
   // create new fields
   const tableName = process.env.TODOS_TABLE;
@@ -18,7 +18,7 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   const todoItem = {
     userId: 'TEST', // TODO: Change this to authed user
     todoId: itemId,
-    createdAt: Date().now(),
+    createdAt: Date.now(),
     done: false,
     attachmentUrl: null,
     ...newTodo
