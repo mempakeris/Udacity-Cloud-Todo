@@ -1,0 +1,1 @@
+{"version":3,"file":"deleteTodo.js","sourceRoot":"","sources":["../../../src/lambda/http/deleteTodo.ts"],"names":[],"mappings":"AAAA,OAAO,6BAA6B,CAAA;AAIpC,MAAM,CAAC,MAAM,OAAO,GAA2B,KAAK,EAAE,KAA2B,EAAkC,EAAE;IACjH,MAAM,MAAM,GAAG,KAAK,CAAC,cAAc,CAAC,MAAM,CAAA;IAE1C,iCAAiC;IACjC,OAAO,SAAS,CAAA;AAClB,CAAC,CAAA"}
