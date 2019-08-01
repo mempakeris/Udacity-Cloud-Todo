@@ -12,10 +12,18 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   const urlExpiration = process.env.SIGNED_URL_EXPIRATION
   const todoId = event.pathParameters.todoId
 
-
-  return s3.getSignedUrl('putObject', {
-    Bucket: bucket,
-    Key: todoId,
-    Expires: urlExpiration
-  });
+  return {
+    statusCode: 202,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Credentials': true
+    },
+    body: JSON.stringify({
+      uploadUrl: s3.getSignedUrl('putObject', {
+        Bucket: bucket,
+        Key: todoId,
+        Expires: urlExpiration
+      })
+    })
+  };
 }
