@@ -4,6 +4,7 @@ service:
 plugins:
   - serverless-webpack
   - serverless-iam-roles-per-function
+  - serverless-dynamodb-local
   - serverless-offline
 
 provider:
@@ -14,7 +15,7 @@ provider:
   region: ${opt:region, 'us-east-1'}
 
   environment:
-    TODOS_TABLE: serverless-todos-table${self:provider.stage}
+    TODOS_TABLE: serverless-todos-table-${self:provider.stage}
     INDEX_NAME: UserIdIndex
     S3_BUCKET: serverless-attachments-${self:provider.stage}
     SIGNED_URL_EXPIRATION: 300
@@ -25,8 +26,9 @@ provider:
       Action:
         - dynamodb:PutItem
         - dynamodb:DeleteItem
-        - dynamodb:Scan
         - dynamodb:UpdateItem
+        - dynamodb:GetItem
+        - dynamodb:Scan
       Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
 
     # S3 Bucket
@@ -34,7 +36,15 @@ provider:
       Action:
         - s3:PutObject
         - s3:GetObject
-      Resource: arn:aws:s3:::${self:provider.environment.S3_BUCKET}
+      Resource: arn:aws:s3:::${self:provider.environment.S3_BUCKET}/*
+
+custom:
+  dynamodb:
+    start:
+      migrate: true
+      inMemory: true
+    stages:
+      - dev
 
 functions:
 
@@ -88,8 +98,20 @@ functions:
 
 resources:
   Resources:
+    # API Gateway
+    GatewayResponseDefault4XX:
+      Type: AWS::ApiGateway::GatewayResponse
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: '*'
+          gatewayresponse.header.Access-Control-Allow-Headers: '*'
+          gatewayresponse.header.Access-Control-Allow-Methods: '*'
+        ResponseType: DEFAULT_4XX
+        RestApiId:
+          Ref: ApiGatewayRestApi
+
     # DynamoDB
-    TodosTable:
+    TodoTable:
       Type: AWS::DynamoDB::Table
       Properties:
         AttributeDefinitions:
@@ -102,7 +124,7 @@ resources:
         KeySchema:
           - AttributeName: todoId
             KeyType: HASH
-          - AttributeName: createdAt
+          - AttributeName: userId
             KeyType: RANGE
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:provider.environment.TODOS_TABLE}
@@ -111,7 +133,7 @@ resources:
             KeySchema:
               - AttributeName: todoId
                 KeyType: HASH
-              - AttributeName: userId
+              - AttributeName: createdAt
                 KeyType: RANGE
             Projection:
               ProjectionType: ALL
@@ -130,8 +152,10 @@ resources:
                 - '*'
               AllowedMethods:
                 - GET
+                - PUT
                 - POST
                 - DELETE
+                - HEAD
               MaxAge: 3000
 
     # S3 Bucket Policy
@@ -142,9 +166,11 @@ resources:
           Id: Policy
           Version: '2012-10-17'
           Statement:
-            - Sid: PublicReadForGetBucketObjects
+            - Sid: PublicReadWriteBucketPolicy
               Effect: Allow
               Principal: '*' # Anyone
-              Action: 's3:GetObject'
-              Resource: 'arn:aws:s3:::${self:provider.environment.S3_BUCKET}/*'
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+              Resource: arn:aws:s3:::${self:provider.environment.S3_BUCKET}/*
         Bucket: !Ref AttachmentBucket
