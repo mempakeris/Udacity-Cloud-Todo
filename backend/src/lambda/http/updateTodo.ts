@@ -1,21 +1,14 @@
 import 'source-map-support/register';
 import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda';
-import * as AWS from 'aws-sdk';
 
 // dev imported
+import { updateTodo } from '../../businessLogic/todos';
 import { UpdateTodoRequest } from '../../requests/UpdateTodoRequest';
-import { getUserId } from '../utils';
-
-const dynamoDB = new AWS.DynamoDB.DocumentClient();
-const tableName = process.env.TODOS_TABLE;
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  // relevant query attributes
-  const todoId = event.pathParameters.todoId;
-  const userId = getUserId(event);
   const updatedTodo: UpdateTodoRequest = JSON.parse(event.body);
 
-  if (!(await todoItemExists(todoId, userId))) {
+  if (!(await updateTodo(event, updatedTodo))) {
     return {
       statusCode: 404,
       body: JSON.stringify({
@@ -23,26 +16,6 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
       })
     };
   }
-
-  // updated item in table
-  await dynamoDB.update({
-    TableName: tableName,
-    Key: {
-      todoId,
-      userId
-    },
-    UpdateExpression: 'set #name = :n, #dueDate = :due, #done = :d',
-    ExpressionAttributeValues: {
-      ':n': updatedTodo.name,
-      ':due': updatedTodo.dueDate,
-      ':d': updatedTodo.done
-    },
-    ExpressionAttributeNames: {
-      '#name': 'name',
-      '#dueDate': 'dueDate',
-      '#done': 'done'
-    }
-  }).promise();
 
   return {
     statusCode: 200,
@@ -52,16 +25,4 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
     },
     body: JSON.stringify({})
   }
-}
-
-async function todoItemExists(todoId: string, userId: string) {
-  const result = await dynamoDB.get({
-    TableName: tableName,
-    Key: {
-      todoId,
-      userId
-    }
-  }).promise();
-
-  return !!result.Item;
 }

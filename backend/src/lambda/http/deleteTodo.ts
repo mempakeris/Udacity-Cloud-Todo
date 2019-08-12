@@ -1,19 +1,12 @@
 import 'source-map-support/register';
 import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } from 'aws-lambda';
-import * as AWS from 'aws-sdk';
 
 // dev imported
-import { getUserId } from '../utils';
-
-const dynamoDB = new AWS.DynamoDB.DocumentClient();
-const tableName = process.env.TODOS_TABLE;
+import { deleteTodo } from '../../businessLogic/todos';
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  // relevant query attributes
-  const todoId = event.pathParameters.todoId;
-  const userId = getUserId(event);
-
-  if (!(await todoItemExists(todoId, userId))) {
+  // delete todo and if it fails, return error
+  if (!(await deleteTodo(event))) {
     return {
       statusCode: 404,
       body: JSON.stringify({
@@ -21,15 +14,6 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
       })
     };
   }
-
-  // remove item from db
-  await dynamoDB.delete({
-    TableName: tableName,
-    Key: {
-      todoId,
-      userId
-    }
-  }).promise();
 
   return {
     statusCode: 202,
@@ -39,16 +23,4 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
     },
     body: JSON.stringify({})
   };
-}
-
-async function todoItemExists(todoId: string, userId: string) {
-  const result = await dynamoDB.get({
-    TableName: tableName,
-    Key: {
-      todoId,
-      userId
-    }
-  }).promise();
-
-  return !!result.Item;
 }

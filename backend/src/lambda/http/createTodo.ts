@@ -1,24 +1,12 @@
 import 'source-map-support/register';
 import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda';
-import * as AWS from 'aws-sdk';
-import * as uuid from 'uuid';
 
 // dev imported
 import { CreateTodoRequest } from '../../requests/CreateTodoRequest';
-import { getUserId } from '../utils';
+import { createTodo } from '../../businessLogic/todos';
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  const dynamoDB = new AWS.DynamoDB.DocumentClient();
-
-  // create new fields
-  const bucketName = process.env.S3_BUCKET;
-  const tableName = process.env.TODOS_TABLE;
-  const itemId = uuid.v4();
   const newTodo: CreateTodoRequest = JSON.parse(event.body);
-
-  // create new table content
-  const date = new Date(Date.now()).toISOString();
-  const user = getUserId(event);
 
   // ensure todoItem name is not empty
   if (!newTodo.name) {
@@ -30,20 +18,7 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
     };
   }
 
-  const todoItem = {
-    userId: user,
-    todoId: itemId,
-    createdAt: date,
-    done: false,
-    attachmentUrl: `https://${bucketName}.s3.amazonaws.com/${itemId}`,
-    ...newTodo
-  };
-
-  // add table to dynamoDB
-  await dynamoDB.put({
-    TableName: tableName,
-    Item: todoItem
-  }).promise();
+  const todoItem = await createTodo(event, newTodo);
 
   return {
     statusCode: 201,
