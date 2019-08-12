@@ -8,7 +8,8 @@ import { UpdateTodoRequest } from '../../requests/UpdateTodoRequest';
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   const updatedTodo: UpdateTodoRequest = JSON.parse(event.body);
 
-  if (!(await updateTodo(event, updatedTodo))) {
+  const updated = await updateTodo(event, updatedTodo);
+  if (!updated) {
     return {
       statusCode: 404,
       body: JSON.stringify({

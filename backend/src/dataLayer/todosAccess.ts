@@ -1,13 +1,15 @@
 import * as AWS from 'aws-sdk';
+import * as AWSXRay from 'aws-xray-sdk';
 import { DocumentClient } from 'aws-sdk/clients/dynamodb';
+
+const XAWS = AWSXRay.captureAWS(AWS);
 
 export default class TodosAccess {
   constructor(
-      private readonly docClient: DocumentClient = new AWS.DynamoDB.DocumentClient(),
+      private readonly docClient: DocumentClient = new XAWS.DynamoDB.DocumentClient(),
       private readonly todosTable = process.env.TODOS_TABLE,
+      private readonly indexName = process.env.INDEX_NAME
   ) {}
-
-  /*** NoSQL related ***/
 
   async addTodoToDB(todoItem) {
       await this.docClient.put({
@@ -36,6 +38,19 @@ export default class TodosAccess {
       }).promise();
 
       return result.Item;
+  }
+
+  async getAllTodosFromDB(userId) {
+      const result = await this.docClient.query({
+          TableName: this.todosTable,
+          IndexName: this.indexName,
+          KeyConditionExpression: 'userId = :userId',
+          ExpressionAttributeValues: {
+              ':userId': userId
+          }
+      }).promise();
+
+      return result.Items;
   }
 
   async updateTodoInDB(todoId, userId, updatedTodo) {

@@ -37,7 +37,7 @@ export async function deleteTodo(event: APIGatewayProxyEvent) {
     const todoId = event.pathParameters.todoId;
     const userId = getUserId(event);
 
-    if (!!(await todosAccess.getTodoFromDB(todoId, userId))) {
+    if (!(await todosAccess.getTodoFromDB(todoId, userId))) {
         return false;
     }
 
@@ -53,12 +53,18 @@ export async function getTodo(event: APIGatewayProxyEvent) {
     return await todosAccess.getTodoFromDB(todoId, userId);
 }
 
+export async function getTodos(event: APIGatewayProxyEvent) {
+    const userId = getUserId(event);
+
+    return await todosAccess.getAllTodosFromDB(userId);
+}
+
 export async function updateTodo(event: APIGatewayProxyEvent,
                                  updateTodoRequest: UpdateTodoRequest) {
     const todoId = event.pathParameters.todoId;
     const userId = getUserId(event);
 
-    if (!!(await todosAccess.getTodoFromDB(todoId, userId))) {
+    if (!(await todosAccess.getTodoFromDB(todoId, userId))) {
         return false;
     }
 

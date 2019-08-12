@@ -6,7 +6,7 @@ import {
 } from 'aws-lambda';
 
 // dev imported
-import { getTodo } from '../../businessLogic/todos';
+import { getTodos } from '../../businessLogic/todos';
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   return {
@@ -15,7 +15,7 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
       'Access-Control-Allow-Origin': '*'
     },
     body: JSON.stringify({
-      items: await getTodo(event)
+      items: await getTodos(event)
     })
   };
 }
